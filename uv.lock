@@ -233,6 +233,7 @@ dependencies = [
     { name = "loguru" },
     { name = "pydantic-settings" },
     { name = "python-dotenv" },
+    { name = "sqlalchemy" },
     { name = "uvicorn" },
 ]
 
@@ -244,6 +245,7 @@ requires-dist = [
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pydantic-settings", specifier = ">=2.12.0" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
+    { name = "sqlalchemy", specifier = ">=2.0.44" },
     { name = "uvicorn", specifier = ">=0.38.0" },
 ]
 
