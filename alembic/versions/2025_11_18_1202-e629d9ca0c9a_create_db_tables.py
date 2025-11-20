@@ -71,10 +71,10 @@ def upgrade() -> None:
                    image_id INT,
                    created_at TIMESTAMP,
                    CONSTRAINT fk_user_id
-                   FOREIGN KEY user_id
+                   FOREIGN KEY (user_id)
                    REFERENCES users(user_id),
                    CONSTRAINT fk_image_id
-                   FOREIGN KEY image_id
+                   FOREIGN KEY (image_id)
                    REFERENCES images(image_id)
                )
                """)
@@ -87,9 +87,12 @@ def upgrade() -> None:
                    visited_at TIMESTAMP,
                    is_hidden BOOLEAN,
                    created_at TIMESTAMP,
-                   CONSTRAINT fk_visit_id
-                    FOREIGN KEY (visitor_id, visited_id)
-                        REFERENCES users(user_id)
+                   CONSTRAINT fk_visitor_id
+                   FOREIGN KEY (visitor_id)
+                   REFERENCES users(user_id),
+                   CONSTRAINT fk_visited_id
+                   FOREIGN KEY (visited_id)
+                   REFERENCES users(user_id)
                )
                """)
     # create like table
@@ -99,9 +102,12 @@ def upgrade() -> None:
                    liker_id INT,
                    target_id INT,
                    created_at TIMESTAMP,
-                   CONSTRAINT fk_like_id
-                    FOREIGN KEY (liker_id, target_id)
-                        REFERENCES users(user_id)
+                   CONSTRAINT fk_liker_id
+                    FOREIGN KEY (liker_id)
+                    REFERENCES users(user_id),
+                    CONSTRAINT fk_target_id
+                    FOREIGN KEY (target_id)
+                    REFERENCES users(user_id)
                )
                """)
     # create match table
@@ -113,9 +119,12 @@ def upgrade() -> None:
                    matched_at TIMESTAMP,
                    is_match_active BOOLEAN DEFAULT FALSE,
                    created_at TIMESTAMP,
-                   CONSTRAINT fk_match_id
-                    FOREIGN KEY (user1_id, user2_id)
-                        REFERENCES users(user_id)
+                   CONSTRAINT fk_first_match_id
+                    FOREIGN KEY (user1_id)
+                    REFERENCES users(user_id),
+                    CONSTRAINT fk_second_match_id
+                    FOREIGN KEY (user2_id)
+                    REFERENCES users(user_id)
                )
                """)
     # create conversation table
@@ -132,15 +141,12 @@ def upgrade() -> None:
                    last_read_msg_user1_at TIMESTAMP,
                    last_read_msg_user2_at TIMESTAMP,
                    created_at TIMESTAMP,
-                   CONSTRAINT fk_members_id
-                   FOREIGN KEY (first_member_id, second_member_id)
+                   CONSTRAINT fk_first_member_id
+                   FOREIGN KEY (first_member_id)
                    REFERENCES users(user_id),
-                   CONSTRAINT fk_last_message_id
-                   FOREIGN KEY last_message_id
-                   REFERENCES messages(message_id),
-                   CONSTRAINT fk_last_read_messages_id
-                   FOREIGN KEY (last_read_msg_user1_id, last_read_msg_user2_id)
-                   REFERENCES messages(message_id)
+                   CONSTRAINT fk_second_member_id
+                   FOREIGN KEY (second_member_id)
+                   REFERENCES users(user_id)
                )
                """)
     # create message table
@@ -149,32 +155,50 @@ def upgrade() -> None:
                    message_id SERIAL PRIMARY KEY,
                    conversation_id INT,
                    sender_id INT,
-                   content_type VARCHAR(100)
+                   content_type VARCHAR(100),
                    content TEXT,
-                   metadata JSONB
+                   metadata JSONB,
                    is_system BOOLEAN,
                    created_at TIMESTAMP,
                    deleted_at TIMESTAMP,
                    edited_at TIMESTAMP,
                    CONSTRAINT fk_sender_id
-                   FOREIGN KEY sender_id
-                   REFERENCES users(user_id),
-                   CONSTRAINT fk_conversation_id
-                   FOREIGN KEY conversation_id
-                   REFERENCES conversations(conversation_id)
+                   FOREIGN KEY (sender_id)
+                   REFERENCES users(user_id)
                )
+               """)
+    # update messages table
+    op.execute("""
+               ALTER TABLE messages
+               ADD CONSTRAINT fk_conversation_id
+                   FOREIGN KEY (conversation_id)
+                   REFERENCES conversations(conversation_id)
+               """)
+    # # update conversations table
+    op.execute("""
+               ALTER TABLE conversations
+               ADD CONSTRAINT fk_last_message_id
+               FOREIGN KEY (last_message_id)
+               REFERENCES messages(message_id),
+               ADD CONSTRAINT fk_last_read_message_by_user1_id
+                FOREIGN KEY (last_read_msg_user1_id)
+                REFERENCES messages(message_id),
+                ADD CONSTRAINT fk_last_read_message_by_user2_id
+                FOREIGN KEY (last_read_msg_user2_id)
+                REFERENCES messages(message_id)
                """)
     # create notification table
     op.execute("""
                CREATE TABLE IF NOT EXISTS notifications (
                    notification_id SERIAL PRIMARY KEY,
                    user_id INT,
-                   type VARCHAR(250)
+                   type VARCHAR(250),
                    actor_user_id INT,
                    payload JSONB,
                    is_read BOOLEAN,
                    created_at TIMESTAMP,
-                   CONSTRAINT fk_user_id FOREIGN KEY (user_id, actor_user_id) REFERENCES users(user_id)
+                   CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(user_id),
+                   CONSTRAINT fk_actor_user_id FOREIGN KEY (actor_user_id) REFERENCES users(user_id)
                )
                """)
 
