@@ -14,6 +14,7 @@ async def lifespan(app: FastAPI):
     yield
     await connection.close_connection()
 
+
 app = FastAPI(lifespan=lifespan)
 
 

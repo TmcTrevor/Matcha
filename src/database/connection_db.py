@@ -12,9 +12,7 @@ class DatabaseConnection:
         logger.info("initiation of DB")
         try:
             self.connection_pool = await asyncpg.create_pool(
-                dsn=settings.DATABASE_URL,
-                min_size=1,
-                max_size=10
+                dsn=settings.DATABASE_URL, min_size=1, max_size=10
             )
         except Exception as e:
             logger.error("Error while creating connection pool", e)
